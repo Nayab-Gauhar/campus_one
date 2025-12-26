@@ -1,0 +1,12 @@
+Analyzing campus_one...                                         
+
+warning • Unused import: '../../theme/app_theme.dart' • lib/screens/admin/create_event_screen.dart:6:8 • unused_import
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/admin/create_event_screen.dart:111:15 • deprecated_member_use
+warning • Unused import: '../../models/society.dart' • lib/screens/admin/requests_page.dart:5:8 • unused_import
+warning • Unused import: '../../theme/app_theme.dart' • lib/screens/auth/login_screen.dart:4:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/dashboard/dashboard_page.dart:64:64 • deprecated_member_use
+   info • Unnecessary use of 'toList' in a spread • lib/screens/dashboard/dashboard_page.dart:151:72 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/dashboard/dashboard_page.dart:249:50 • deprecated_member_use
+   info • The private field _sportsData could be 'final' • lib/services/data_service.dart:11:21 • prefer_final_fields
+   info • The private field _sportsTeams could be 'final' • lib/services/data_service.dart:12:20 • prefer_final_fields
+
