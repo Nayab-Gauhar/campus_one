@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/society.dart';
-import '../../services/data_service.dart';
-import '../../services/auth_service.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/animated_widgets.dart';
+import 'package:campus_one/models/society.dart';
+import 'package:campus_one/services/data_service.dart';
+import 'package:campus_one/services/auth_service.dart';
+import 'package:campus_one/core/theme/app_theme.dart';
+import 'package:campus_one/widgets/animations/animated_widgets.dart';
 
 class SocietyDetailsScreen extends StatelessWidget {
   final SocietyModel society;

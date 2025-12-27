@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/data_service.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/animated_widgets.dart';
+import 'package:campus_one/services/data_service.dart';
+import 'package:campus_one/core/theme/app_theme.dart';
+import 'package:campus_one/widgets/animations/animated_widgets.dart';
 
 class RequestsPage extends StatefulWidget {
   const RequestsPage({super.key});

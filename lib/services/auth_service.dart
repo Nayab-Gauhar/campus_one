@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart';
+import 'package:campus_one/models/user.dart';
 
 class AuthService extends ChangeNotifier {
   UserModel? _currentUser;
@@ -19,9 +19,35 @@ class AuthService extends ChangeNotifier {
 
     if (userId != null && userName != null && userEmail != null && userRoleString != null) {
       final role = userRoleString == 'student' ? UserRole.student : UserRole.clubAdmin;
-      _currentUser = UserModel(id: userId, name: userName, email: userEmail, role: role);
+      final points = prefs.getInt('user_points') ?? 0;
+      final followedTeams = prefs.getStringList('followed_teams') ?? [];
+      _currentUser = UserModel(
+        id: userId, 
+        name: userName, 
+        email: userEmail, 
+        role: role, 
+        points: points,
+        followedTeamIds: followedTeams,
+      );
       notifyListeners();
     }
+  }
+
+  void toggleFollowTeam(String teamId) async {
+    if (_currentUser == null) return;
+    
+    final List<String> currentFollowed = List.from(_currentUser!.followedTeamIds);
+    if (currentFollowed.contains(teamId)) {
+      currentFollowed.remove(teamId);
+    } else {
+      currentFollowed.add(teamId);
+    }
+    
+    _currentUser = _currentUser!.copyWith(followedTeamIds: currentFollowed);
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('followed_teams', currentFollowed);
+    notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {
@@ -35,6 +61,7 @@ class AuthService extends ChangeNotifier {
           name: 'Admin User',
           email: email,
           role: UserRole.clubAdmin,
+          points: 0,
         );
       } else {
         _currentUser = UserModel(
@@ -42,6 +69,7 @@ class AuthService extends ChangeNotifier {
           name: 'Nayab Gauhar',
           email: email,
           role: UserRole.student,
+          points: 1240,
         );
       }
 
@@ -50,11 +78,33 @@ class AuthService extends ChangeNotifier {
       await prefs.setString('user_name', _currentUser!.name);
       await prefs.setString('user_email', _currentUser!.email);
       await prefs.setString('user_role', _currentUser!.role == UserRole.student ? 'student' : 'clubAdmin');
+      await prefs.setInt('user_points', _currentUser!.points);
 
       notifyListeners();
       return true;
     }
     return false;
+  }
+
+  Future<bool> register(String name, String email, String password, String department) async {
+    // Mock registration logic
+    await Future.delayed(const Duration(seconds: 1));
+    
+    _currentUser = UserModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      email: email,
+      role: UserRole.student,
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_id', _currentUser!.id);
+    await prefs.setString('user_name', _currentUser!.name);
+    await prefs.setString('user_email', _currentUser!.email);
+    await prefs.setString('user_role', 'student');
+
+    notifyListeners();
+    return true;
   }
 
   Future<void> logout() async {

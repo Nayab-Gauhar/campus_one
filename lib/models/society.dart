@@ -13,6 +13,7 @@ class SocietyModel {
   final String whatWeDo;
   final String idealtudentProfile;
   final String timeCommitment; // e.g., "2-4 hours/week"
+  final bool isRecruiting;
 
   SocietyModel({
     required this.id,
@@ -27,6 +28,7 @@ class SocietyModel {
     this.whatWeDo = '',
     this.idealtudentProfile = 'Enthusiastic learners',
     this.timeCommitment = 'Flexible',
+    this.isRecruiting = false,
   });
   SocietyModel copyWith({
     String? id,
@@ -41,6 +43,7 @@ class SocietyModel {
     String? whatWeDo,
     String? idealtudentProfile,
     String? timeCommitment,
+    bool? isRecruiting,
   }) {
     return SocietyModel(
       id: id ?? this.id,
@@ -55,6 +58,7 @@ class SocietyModel {
       whatWeDo: whatWeDo ?? this.whatWeDo,
       idealtudentProfile: idealtudentProfile ?? this.idealtudentProfile,
       timeCommitment: timeCommitment ?? this.timeCommitment,
+      isRecruiting: isRecruiting ?? this.isRecruiting,
     );
   }
 }

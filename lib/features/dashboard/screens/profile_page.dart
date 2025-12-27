@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../services/auth_service.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/animated_widgets.dart';
+import 'package:campus_one/services/auth_service.dart';
+import 'package:campus_one/services/data_service.dart';
+import 'package:campus_one/core/theme/app_theme.dart';
+import 'package:campus_one/widgets/animations/animated_widgets.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:campus_one/features/dashboard/screens/events_view.dart';
+import 'package:campus_one/features/dashboard/screens/societies_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -12,8 +16,13 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
+    final data = context.watch<DataService>();
 
     if (user == null) return const Center(child: Text('Please login'));
+    
+    final savedCount = data.savedEventIds.length;
+    final eventsCount = user.registeredEvents.length;
+    final clubsCount = user.joinedSocieties.length;
 
     return Container(
       color: AppTheme.scaffoldColor,
@@ -21,6 +30,9 @@ class ProfilePage extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         slivers: [
           const SliverPadding(padding: EdgeInsets.only(top: 56)),
+          CupertinoSliverRefreshControl(
+            onRefresh: () async => await context.read<DataService>().refreshData(),
+          ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             sliver: SliverToBoxAdapter(
@@ -82,7 +94,7 @@ class ProfilePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Journey Progress', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w800)),
-                          Text('1,240 / 2,000 XP', style: TextStyle(color: AppTheme.primaryColor, fontSize: 11, fontWeight: FontWeight.w900)),
+                          Text('${user.points} / 5000 XP', style: TextStyle(color: AppTheme.primaryColor, fontSize: 11, fontWeight: FontWeight.w900)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -106,7 +118,7 @@ class ProfilePage extends StatelessWidget {
                                 child: Container(
                                   height: 12,
                                   decoration: BoxDecoration(
-                                    gradient: const LinearGradient(colors: [AppTheme.primaryColor, AppTheme.accentColor]),
+                                    gradient: const LinearGradient(colors: [AppTheme.accentColor, Colors.greenAccent]),
                                     borderRadius: BorderRadius.circular(100),
                                     boxShadow: [
                                       BoxShadow(color: AppTheme.accentColor.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
@@ -135,6 +147,40 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           
+          // My Activity Section
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            sliver: SliverToBoxAdapter(
+              child: Row(
+                children: [
+                   _ActivityShortcut(
+                     icon: Icons.confirmation_number_rounded, 
+                     label: 'My Events', 
+                     count: '$eventsCount',
+                     color: AppTheme.primaryColor,
+                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage())),
+                   ),
+                   const SizedBox(width: 12),
+                   _ActivityShortcut(
+                     icon: Icons.groups_rounded, 
+                     label: 'My Clubs', 
+                     count: '$clubsCount',
+                     color: AppTheme.accentColor,
+                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SocietiesPage())),
+                   ),
+                   const SizedBox(width: 12),
+                   _ActivityShortcut(
+                     icon: Icons.bookmark_rounded, 
+                     label: 'Saved', 
+                     count: '$savedCount',
+                     color: Colors.orange,
+                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage())),
+                   ),
+                ],
+              ),
+            ),
+          ),
+
           // Personal Info Card matching Image 1
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -279,7 +325,10 @@ class _BadgeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScaleOnTap(
-      onTap: () => _showDetails(context),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _showDetails(context);
+      },
       child: Container(
         width: 80,
         margin: const EdgeInsets.only(right: 12),
@@ -330,6 +379,49 @@ class _ProfileInfoRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ActivityShortcut extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String count;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActivityShortcut({
+    required this.icon,
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: ScaleOnTap(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.05)),
+            boxShadow: [
+              BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
+            ],
+          ),
+          child: Column(
+            children: [
+              Text(count, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
+              const SizedBox(height: 4),
+              Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

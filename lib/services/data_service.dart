@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/event.dart';
-import '../models/society.dart';
-import '../models/sports.dart';
-import '../models/notification.dart';
+import 'package:campus_one/models/event.dart';
+import 'package:campus_one/models/society.dart';
+import 'package:campus_one/models/sports.dart';
+import 'package:campus_one/models/notification.dart';
 
 class DataService extends ChangeNotifier {
   List<EventModel> _events = [];
@@ -12,12 +12,16 @@ class DataService extends ChangeNotifier {
   final List<SportsModel> _sportsData = [];
   final List<SportsTeam> _sportsTeams = [];
   List<NotificationModel> _notifications = [];
+  List<String> _savedEventIds = [];
+  bool _isLoading = false;
 
   List<EventModel> get events => _events;
   List<SocietyModel> get societies => _societies;
   List<SportsModel> get sportsData => _sportsData;
   List<SportsTeam> get sportsTeams => _sportsTeams;
   List<NotificationModel> get notifications => _notifications;
+  List<String> get savedEventIds => _savedEventIds;
+  bool get isLoading => _isLoading;
 
   // Admin Metrics
   int get activeEventCount => _events.where((e) => e.date.isAfter(DateTime.now())).length;
@@ -80,6 +84,21 @@ class DataService extends ChangeNotifier {
         whatWeDo: 'We organize photo walks, workshops, and exhibitions.',
         idealtudentProfile: 'Anyone with a passion for visual storytelling.',
         timeCommitment: '2-4 hours per week.',
+        isRecruiting: true,
+      ),
+      SocietyModel(
+        id: 's2',
+        name: 'Tech Club',
+        description: 'Building the next generation of software engineers.',
+        logoUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800', // Laptop
+        adminId: '2',
+        category: 'Tech',
+        memberIds: [],
+        pendingRequests: [],
+        whatWeDo: 'Coding workshops, hackathons, and project-based learning.',
+        idealtudentProfile: 'Passionate coders and problem solvers.',
+        timeCommitment: '5-8 hours per week.',
+        isRecruiting: true,
       ),
     ];
 
@@ -112,6 +131,8 @@ class DataService extends ChangeNotifier {
         venue: 'Main Stadium',
         status: 'Ongoing',
         teamIds: ['t1', 't2'],
+        homeScore: 2,
+        awayScore: 1,
       ),
       SportsModel(
         id: 'm2',
@@ -122,6 +143,8 @@ class DataService extends ChangeNotifier {
         venue: 'College Oval',
         status: 'Upcoming',
         teamIds: ['t3', 't4'],
+        homeScore: 0,
+        awayScore: 0,
       ),
     ]);
 
@@ -195,6 +218,11 @@ class DataService extends ChangeNotifier {
         }
       }
     }
+    // Load saved events
+    final savedString = prefs.getString('saved_events');
+    if (savedString != null) {
+      _savedEventIds = List<String>.from(jsonDecode(savedString));
+    }
   }
 
   Future<void> _savePersistedData() async {
@@ -211,6 +239,8 @@ class DataService extends ChangeNotifier {
         .map((s) => s.id)
         .toList();
     await prefs.setString('joined_societies', jsonEncode(joinedIds));
+
+    await prefs.setString('saved_events', jsonEncode(_savedEventIds));
   }
 
   void registerForEvent(String eventId, String userId) {
@@ -271,6 +301,33 @@ class DataService extends ChangeNotifier {
 
   void addEvent(EventModel event) {
     _events.insert(0, event);
+    notifyListeners();
+  }
+
+  void toggleSaveEvent(String eventId) {
+    if (_savedEventIds.contains(eventId)) {
+      _savedEventIds.remove(eventId);
+    } else {
+      _savedEventIds.add(eventId);
+    }
+    _savePersistedData();
+    notifyListeners();
+  }
+
+  void toggleFollowTeam(String teamId) {
+    // This would typically update the UserModel in AuthService too
+    // For now we simulate persistence in prefs
+    _savePersistedData(); // Simplified
+    notifyListeners();
+  }
+
+  Future<void> refreshData() async {
+    _isLoading = true;
+    notifyListeners();
+    // Mock refresh delay
+    await Future.delayed(const Duration(seconds: 1));
+    await _initializeData();
+    _isLoading = false;
     notifyListeners();
   }
 }
