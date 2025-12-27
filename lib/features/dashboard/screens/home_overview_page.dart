@@ -70,8 +70,8 @@ class HomeOverviewPage extends StatelessWidget {
                               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
                             ),
                             Text(
-                              upcomingEvents.isEmpty ? 'No events today' : '${upcomingEvents.length} upcoming events',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.5),
+                              nextEvent != null ? 'Ready for ${nextEvent.title}?' : 'No events today',
+                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.5),
                             ),
                           ],
                         ),
@@ -174,7 +174,7 @@ class HomeOverviewPage extends StatelessWidget {
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on_rounded, size: 14, color: AppTheme.accentColor),
+                                  const Icon(Icons.location_on_rounded, size: 14, color: AppTheme.accentTextColor),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${nextEvent?.location ?? "Auditorium"} • ${nextEvent?.organizerName ?? "Campus"}',
@@ -220,7 +220,8 @@ class HomeOverviewPage extends StatelessWidget {
                                   onTap: () {
                                     if (nextEvent != null) {
                                       context.read<DataService>().registerForEvent(nextEvent.id, user?.id ?? '1');
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Joined Event!')));
+                                      context.read<AuthService>().addPoints(100);
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Joined Event! +100 XP')));
                                     }
                                   },
                                   child: Container(
@@ -350,7 +351,7 @@ class HomeOverviewPage extends StatelessWidget {
                 Container(
                   width: 32,
                   height: 4,
-                  decoration: BoxDecoration(color: AppTheme.accentColor, borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: AppTheme.accentTextColor, borderRadius: BorderRadius.circular(10)),
                 ),
                 const SizedBox(height: 8),
                 Text(title.toUpperCase(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5)),
@@ -501,9 +502,9 @@ class _InfoChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppTheme.primaryColor),
+          Icon(icon, size: 12, color: AppTheme.accentTextColor),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.primaryColor)),
+          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.accentTextColor)),
         ],
       ),
     );

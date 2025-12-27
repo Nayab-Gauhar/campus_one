@@ -8,6 +8,7 @@ import 'package:campus_one/widgets/animations/animated_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:campus_one/features/dashboard/screens/events_view.dart';
 import 'package:campus_one/features/dashboard/screens/societies_page.dart';
+import 'package:campus_one/features/dashboard/screens/edit_profile_screen.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -67,14 +68,17 @@ class ProfilePage extends StatelessWidget {
                         ),
                         child: const ClipOval(child: Icon(Icons.person, size: 60, color: AppTheme.textSecondary)),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppTheme.surfaceColor),
+                      ScaleOnTap(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen())),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.surfaceColor),
+                          ),
+                          child: const Icon(Icons.edit_outlined, size: 16, color: AppTheme.primaryColor),
                         ),
-                        child: const Icon(Icons.edit_outlined, size: 16, color: AppTheme.primaryColor),
                       ),
                     ],
                   ),
@@ -134,9 +138,9 @@ class ProfilePage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.bolt, size: 14, color: AppTheme.accentColor),
+                          const Icon(Icons.bolt, size: 14, color: AppTheme.accentTextColor),
                           const SizedBox(width: 4),
-                          Text('+120 XP earned today', style: TextStyle(color: AppTheme.accentColor.withBlue(100), fontSize: 10, fontWeight: FontWeight.w900)),
+                          Text('+120 XP earned today', style: const TextStyle(color: AppTheme.accentTextColor, fontSize: 10, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ],
@@ -165,7 +169,7 @@ class ProfilePage extends StatelessWidget {
                      icon: Icons.groups_rounded, 
                      label: 'My Clubs', 
                      count: '$clubsCount',
-                     color: AppTheme.accentColor,
+                     color: AppTheme.accentTextColor,
                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SocietiesPage())),
                    ),
                    const SizedBox(width: 12),
@@ -199,7 +203,10 @@ class ProfilePage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Personal info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-                        Text('Edit', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w700, fontSize: 13)),
+                        ScaleOnTap(
+                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen())),
+                           child: Text('Edit', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w700, fontSize: 13)),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -261,7 +268,14 @@ class ProfilePage extends StatelessWidget {
                     const SizedBox(height: 24),
                     _ProfileInfoRow(icon: Icons.verified_user_outlined, label: 'Status', value: 'Active Student'),
                     const Divider(height: 32),
-                    _ProfileInfoRow(icon: Icons.stars_rounded, label: 'Clubs Joined', value: '03 active societies'),
+                    _ProfileInfoRow(icon: Icons.stars_rounded, label: 'Clubs Joined', value: '$clubsCount active societies'),
+                    const Divider(height: 32),
+                    _ProfileInfoRow(
+                      icon: Icons.bookmark_border_rounded, 
+                      label: 'Saved Content', 
+                      value: '$savedCount items bookmarked',
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage())),
+                    ),
                     const SizedBox(height: 32),
                     ScaleOnTap(
                       onTap: () => auth.logout(),
@@ -356,29 +370,35 @@ class _ProfileInfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _ProfileInfoRow({required this.icon, required this.label, required this.value});
+  final VoidCallback? onTap;
+  const _ProfileInfoRow({required this.icon, required this.label, required this.value, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: AppTheme.surfaceColor, borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, size: 20, color: AppTheme.primaryColor),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-            ],
+    return ScaleOnTap(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: AppTheme.surfaceColor, borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, size: 20, color: AppTheme.primaryColor),
           ),
-        ),
-      ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+              ],
+            ),
+          ),
+          if (onTap != null)
+            const Icon(Icons.chevron_right_rounded, size: 20, color: AppTheme.textSecondary),
+        ],
+      ),
     );
   }
 }

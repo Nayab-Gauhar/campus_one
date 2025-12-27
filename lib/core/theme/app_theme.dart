@@ -4,7 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // Brand Colors - Infused with Neobank Aesthetic
   static const Color primaryColor = Color(0xFF0D291E); // Deep Forest Green
-  static const Color accentColor = Color(0xFFD4FF33);  // Neon Lime
+  static const Color accentColor = Color(0xFFD4FF33);  // Neon Lime (Bright for dark bg)
+  static const Color accentTextColor = Color(0xFF8DBB00); // Darker Neon (For light bg visibility)
   static const Color backgroundColor = Colors.white;
   static const Color scaffoldColor = Color(0xFFF9FBF9); // Very subtle green-tinted white
   static const Color cardColor = Colors.white;

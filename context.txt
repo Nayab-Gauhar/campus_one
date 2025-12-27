@@ -1,0 +1,11 @@
+          const SizedBox(height: 24),
+          _ExperienceItem(icon: Icons.checklist_rounded, title: 'Requirements', value: prereq.isEmpty ? 'None' : prereq),
+        ],
+      ),
+    );
+  }
+}
+
+class _AgendaSection extends StatelessWidget {
+  final List<AgendaItem> agenda;
+  const _AgendaSection({required this.agenda});

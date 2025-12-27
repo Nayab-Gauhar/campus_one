@@ -108,8 +108,8 @@ class _UniversalFloatingNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      height: 50, // Ultra-Compact height
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+      height: 72, // Increased from 50
       decoration: BoxDecoration(
         color: AppTheme.primaryColor, 
         borderRadius: BorderRadius.circular(100),
@@ -132,7 +132,7 @@ class _UniversalFloatingNav extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.fastOutSlowIn,
-                width: isSelected ? 120 : 48,
+                width: isSelected ? 130 : 56,
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: isSelected ? AppTheme.accentColor : Colors.transparent, 
@@ -150,7 +150,7 @@ class _UniversalFloatingNav extends StatelessWidget {
                       child: Icon(
                         isSelected ? icons[index][0] : icons[index][1],
                         color: isSelected ? AppTheme.primaryColor : Colors.white.withValues(alpha: 0.6),
-                        size: 20,
+                        size: 22,
                       ),
                     ),
                     if (isSelected)

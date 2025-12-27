@@ -49,6 +49,26 @@ class AuthService extends ChangeNotifier {
     await prefs.setStringList('followed_teams', currentFollowed);
     notifyListeners();
   }
+  void addPoints(int amount) async {
+    if (_currentUser == null) return;
+    
+    final newPoints = _currentUser!.points + amount;
+    _currentUser = _currentUser!.copyWith(points: newPoints);
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('user_points', newPoints);
+    notifyListeners();
+  }
+
+  Future<void> updateProfile({String? name, String? college}) async {
+    if (_currentUser == null) return;
+    
+    _currentUser = _currentUser!.copyWith(name: name);
+    
+    final prefs = await SharedPreferences.getInstance();
+    if (name != null) await prefs.setString('user_name', name);
+    notifyListeners();
+  }
 
   Future<bool> login(String email, String password) async {
     // Mock login logic

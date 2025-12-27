@@ -30,48 +30,60 @@ class _SportsPageState extends State<SportsPage> {
       filteredMatches = data.sportsData.where((s) => s.sportName == _selectedSport).toList();
     }
 
-    return Container(
-      color: AppTheme.scaffoldColor,
-      child: CustomScrollView(
+    return Scaffold(
+      backgroundColor: AppTheme.scaffoldColor,
+      body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPadding(padding: EdgeInsets.only(top: 56)),
-          CupertinoSliverRefreshControl(
-            onRefresh: () async => await context.read<DataService>().refreshData(),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            sliver: SliverToBoxAdapter(
+          // Modern App Bar Replacement
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 60, 24, 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Game day intensity', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600)),
-                      Text('Athletics', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24, letterSpacing: -1.0, color: AppTheme.textPrimary)),
+                      Text('GAME DAY INTENSITY', style: TextStyle(color: AppTheme.accentColor, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                      const SizedBox(height: 4),
+                      Text('Athletics', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 26, letterSpacing: -1.0, color: AppTheme.textPrimary)),
                     ],
+                  ),
+                  _HeaderCircleCount(
+                     count: filteredMatches.where((s) => s.status == 'Ongoing').length,
+                     icon: Icons.sports_basketball_rounded,
                   ),
                 ],
               ),
             ),
           ),
-          const SliverPadding(padding: EdgeInsets.only(top: 24)),
-          SliverToBoxAdapter(child: _buildSportsPills()),
-          const SliverPadding(padding: EdgeInsets.only(top: 32)),
+
+          CupertinoSliverRefreshControl(
+            onRefresh: () async => await context.read<DataService>().refreshData(),
+          ),
           
-          _buildSectionHeader('Live Action'),
-          _buildSportsList(filteredMatches.where((s) => s.status == 'Ongoing').toList()),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: _buildSportsPills(),
+            ),
+          ),
+
+          if (filteredMatches.any((s) => s.status == 'Ongoing')) ...[
+            _buildSectionHeader('Live Scoredboard 🔥'),
+            _buildSportsList(filteredMatches.where((s) => s.status == 'Ongoing').toList()),
+          ],
           
-          _buildSectionHeader('Upcoming Matches'),
+          _buildSectionHeader('Upcoming Fixtures'),
           _buildSportsList(filteredMatches.where((s) => s.status == 'Upcoming').toList()),
           
-          _buildSectionHeader('Our Teams'),
+          _buildSectionHeader('Club Teams'),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             sliver: SliverToBoxAdapter(
               child: SizedBox(
-                height: 140,
+                height: 160,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
@@ -194,6 +206,36 @@ class _SportsPageState extends State<SportsPage> {
   }
 }
 
+class _HeaderCircleCount extends StatelessWidget {
+  final int count;
+  final IconData icon;
+  const _HeaderCircleCount({required this.count, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.circular(100),
+        boxShadow: [
+          BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppTheme.accentColor),
+          const SizedBox(width: 8),
+          Text(
+            '$count LIVE',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SportsMatchTile extends StatelessWidget {
   final SportsModel match;
   const _SportsMatchTile({required this.match});
@@ -201,109 +243,106 @@ class _SportsMatchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = context.watch<DataService>();
-    final now = DateTime.now();
     final isLive = match.status == 'Ongoing';
-    final isUpcoming = match.status == 'Upcoming';
-    final difference = match.dateTime.difference(now);
 
     return ScaleOnTap(
       onTap: () {},
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 20),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.04)),
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.05)),
           boxShadow: [
-            BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.01), blurRadius: 10, offset: const Offset(0, 4))
+            BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20, offset: const Offset(0, 10))
           ],
         ),
         child: Column(
           children: [
             Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: match.teamIds.isNotEmpty 
-                      ? Color(int.parse('0xFF${data.sportsTeams.firstWhere((t) => t.id == match.teamIds.first, orElse: () => SportsTeam(id: '', name: '', sport: '', captain: '', logoUrl: '', colorHex: 'F1F4F1')).colorHex ?? "F1F4F1"}')).withValues(alpha: 0.1)
-                      : AppTheme.surfaceColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.sports_soccer_rounded, 
-                    color: isLive ? Colors.red : (match.teamIds.isNotEmpty 
-                      ? Color(int.parse('0xFF${data.sportsTeams.firstWhere((t) => t.id == match.teamIds.first, orElse: () => SportsTeam(id: '', name: '', sport: '', captain: '', logoUrl: '', colorHex: '0D291E')).colorHex ?? "0D291E"}'))
-                      : AppTheme.primaryColor), 
-                    size: 20
-                  ),
-                ),
-                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(match.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary)),
-                      Text('${match.sportName} • ${match.venue}', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                      _TeamLogoSmall(teamId: match.teamIds.isNotEmpty ? match.teamIds.first : null),
+                      const SizedBox(height: 8),
+                      Text(match.teamIds.isNotEmpty ? data.sportsTeams.firstWhere((t) => t.id == match.teamIds.first).name : 'Home', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                     ],
                   ),
                 ),
-                if (isLive)
-                  PulseAnimation(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                      child: Text(
-                        '${match.homeScore ?? 0} - ${match.awayScore ?? 0}', 
-                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w900, fontSize: 16)
-                      ),
-                    ),
-                  )
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                Expanded(
+                  flex: 2,
+                  child: Column(
                     children: [
-                      Text(
-                        DateFormat('MMM dd').format(match.dateTime).toUpperCase(),
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppTheme.textPrimary),
-                      ),
-                      Text(DateFormat('hh:mm a').format(match.dateTime), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 10, fontWeight: FontWeight.w700)),
+                      if (isLive) ...[
+                        Text(match.sportName.toUpperCase(), style: const TextStyle(color: AppTheme.accentTextColor, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+                        const SizedBox(height: 8),
+                        PulseAnimation(
+                          child: Text(
+                            '${match.homeScore ?? 0} - ${match.awayScore ?? 0}',
+                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -1),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                          child: const Text('LIVE', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900, fontSize: 10)),
+                        ),
+                      ] else ...[
+                         Text(DateFormat('MMM dd').format(match.dateTime).toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.textSecondary)),
+                         const SizedBox(height: 4),
+                         Text(DateFormat('hh:mm a').format(match.dateTime), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
+                         const SizedBox(height: 8),
+                         Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: AppTheme.surfaceColor, borderRadius: BorderRadius.circular(8)),
+                          child: const Text('VS', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w900, fontSize: 10)),
+                        ),
+                      ],
                     ],
                   ),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _TeamLogoSmall(teamId: match.teamIds.length > 1 ? match.teamIds[1] : null),
+                      const SizedBox(height: 8),
+                      Text(match.teamIds.length > 1 ? data.sportsTeams.firstWhere((t) => t.id == match.teamIds[1]).name : 'Away', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                    ],
+                  ),
+                ),
               ],
             ),
-            if (isLive || (isUpcoming && difference.inHours < 24 && difference.inHours > 0))
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: isLive ? Colors.red.withValues(alpha: 0.05) : AppTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(isLive ? Icons.sensors_rounded : Icons.timer_outlined, size: 14, color: isLive ? Colors.red : AppTheme.primaryColor),
-                      const SizedBox(width: 8),
-                      Text(
-                        isLive ? 'LIVE COVERAGE ACTIVE' : 'STARTS IN ${difference.inHours}H ${difference.inMinutes % 60}M',
-                        style: TextStyle(
-                          color: isLive ? Colors.red : AppTheme.primaryColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TeamLogoSmall extends StatelessWidget {
+  final String? teamId;
+  const _TeamLogoSmall({this.teamId});
+
+  @override
+  Widget build(BuildContext context) {
+    final data = context.read<DataService>();
+    final team = teamId != null ? data.sportsTeams.firstWhere((t) => t.id == teamId) : null;
+    
+    return Container(
+      width: 60,
+      height: 60,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: team?.colorHex != null ? Color(int.parse('0xFF${team!.colorHex}')).withValues(alpha: 0.2) : Colors.transparent, width: 2),
+      ),
+      child: team?.logoUrl != null && team!.logoUrl.isNotEmpty
+        ? ShimmerImage(imageUrl: team.logoUrl, borderRadius: 100)
+        : const Icon(Icons.shield_rounded, size: 24, color: AppTheme.textSecondary),
     );
   }
 }
@@ -320,48 +359,52 @@ class _TeamCard extends StatelessWidget {
     return ScaleOnTap(
       onTap: () => auth.toggleFollowTeam(team.id),
       child: Container(
-        width: 140,
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(16),
+        width: 150,
+        margin: const EdgeInsets.only(right: 16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isFollowed ? AppTheme.primaryColor : Colors.white,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: isFollowed ? Colors.transparent : (team.colorHex != null 
               ? Color(int.parse('0xFF${team.colorHex}')).withValues(alpha: 0.2) 
-              : AppTheme.primaryColor.withValues(alpha: 0.04)),
-            width: team.colorHex != null ? 2 : 1,
+              : AppTheme.primaryColor.withValues(alpha: 0.05)),
+            width: 2,
           ),
-          boxShadow: isFollowed ? [
-            BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))
-          ] : null,
+          boxShadow: [
+            if (isFollowed)
+              BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8))
+            else
+              BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 10, offset: const Offset(0, 4))
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 44,
-              height: 44,
+            Container(
+              width: 56,
+              height: 56,
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: isFollowed ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfaceColor,
+                shape: BoxShape.circle,
+              ),
               child: team.logoUrl.isNotEmpty 
-                ? ClipOval(
-                    child: ShimmerImage(
-                      imageUrl: team.logoUrl,
-                      width: 44,
-                      height: 44,
-                    ),
-                  )
-                : const Icon(Icons.shield_rounded, size: 24, color: AppTheme.surfaceColor),
+                ? ClipOval(child: ShimmerImage(imageUrl: team.logoUrl, width: 56, height: 56))
+                : Icon(Icons.shield_rounded, size: 28, color: isFollowed ? Colors.white : AppTheme.textSecondary),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               team.name, 
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: isFollowed ? Colors.white : AppTheme.textPrimary), 
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: isFollowed ? Colors.white : AppTheme.textPrimary), 
               textAlign: TextAlign.center, 
-              maxLines: 1
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
+            const SizedBox(height: 4),
             Text(
-              isFollowed ? 'FOLLOWING' : team.sport.toUpperCase(), 
-              style: TextStyle(color: isFollowed ? Colors.white.withValues(alpha: 0.6) : AppTheme.textSecondary, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)
+              isFollowed ? 'FAVORITE' : team.sport.toUpperCase(), 
+              style: TextStyle(color: isFollowed ? Colors.white.withValues(alpha: 0.7) : AppTheme.accentTextColor, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5)
             ),
           ],
         ),

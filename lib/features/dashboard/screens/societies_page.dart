@@ -278,7 +278,7 @@ class _TrendingSocietyCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               '${society.memberIds.length} Members',
-              style: TextStyle(color: AppTheme.accentColor, fontSize: 10, fontWeight: FontWeight.w800),
+              style: const TextStyle(color: AppTheme.accentTextColor, fontSize: 10, fontWeight: FontWeight.w800),
             ),
           ],
         ),

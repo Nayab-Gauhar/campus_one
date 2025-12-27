@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:campus_one/services/auth_service.dart';
 import 'package:campus_one/core/theme/app_theme.dart';
@@ -264,7 +265,7 @@ class _AuthPrimaryButton extends StatelessWidget {
         ),
         child: Center(
           child: isLoading 
-              ? SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: AppTheme.primaryColor, strokeWidth: 3))
+              ? const CupertinoActivityIndicator(color: AppTheme.primaryColor)
               : Text(
                   label,
                   style: TextStyle(
