@@ -45,7 +45,7 @@ class _SportsPageState extends State<SportsPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('GAME DAY INTENSITY', style: TextStyle(color: AppTheme.accentColor, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                      Text('GAME DAY INTENSITY', style: TextStyle(color: AppTheme.accentTextColor, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                       const SizedBox(height: 4),
                       Text('Athletics', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 26, letterSpacing: -1.0, color: AppTheme.textPrimary)),
                     ],
@@ -357,7 +357,18 @@ class _TeamCard extends StatelessWidget {
     final isFollowed = auth.currentUser?.followedTeamIds.contains(team.id) ?? false;
 
     return ScaleOnTap(
-      onTap: () => auth.toggleFollowTeam(team.id),
+      onTap: () {
+        auth.toggleFollowTeam(team.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isFollowed ? 'Unfollowed ${team.name}' : 'Following ${team.name} 🏆'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.primaryColor,
+            duration: const Duration(milliseconds: 1500),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      },
       child: Container(
         width: 150,
         margin: const EdgeInsets.only(right: 16),

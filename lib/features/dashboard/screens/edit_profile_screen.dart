@@ -36,6 +36,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (mounted) Navigator.pop(context);
   }
 
+  void _showPhotoOptions() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('Change Profile Photo', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.primaryColor)),
+        actions: [
+          CupertinoActionSheetAction(
+             onPressed: () {
+               Navigator.pop(context);
+               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Camera Access Requried 📸')));
+             },
+             child: const Text('Take Photo', style: TextStyle(color: AppTheme.primaryColor)),
+          ),
+          CupertinoActionSheetAction(
+             onPressed: () {
+               Navigator.pop(context);
+               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gallery Access Required 🖼️')));
+             },
+             child: const Text('Choose from Gallery', style: TextStyle(color: AppTheme.primaryColor)),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,17 +83,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                         BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.1), blurRadius: 20)
-                      ],
+                  ScaleOnTap(
+                    onTap: _showPhotoOptions,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [
+                           BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.1), blurRadius: 20)
+                        ],
+                      ),
+                      child: const ClipOval(child: Icon(Icons.person, size: 60, color: AppTheme.textSecondary)),
                     ),
-                    child: const ClipOval(child: Icon(Icons.person, size: 60, color: AppTheme.textSecondary)),
                   ),
                   Container(
                     padding: const EdgeInsets.all(8),
@@ -76,8 +108,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 40),
             _buildField('Full Name', _nameController, Icons.person_outline_rounded),
-            const SizedBox(height: 24),
-            _buildField('Department', TextEditingController(text: 'Computer Science & Eng.'), Icons.school_outlined, enabled: false),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(child: _buildDropdown('Year', '3rd Year', Icons.calendar_today_rounded)),
+                const SizedBox(width: 16),
+                Expanded(child: _buildDropdown('Department', 'CSE', Icons.school_outlined)),
+              ],
+            ),
+            const SizedBox(height: 32),
+            const Align(alignment: Alignment.centerLeft, child: Text('Social Links', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1))),
+            const SizedBox(height: 16),
+            _buildField('Instagram', TextEditingController(text: '@nayab.dev'), Icons.camera_alt_outlined),
+            const SizedBox(height: 16),
+            _buildField('LinkedIn', TextEditingController(text: 'in/nayab-gauhar'), Icons.business_center_outlined),
+            
             const SizedBox(height: 48),
             ScaleOnTap(
               onTap: _isLoading ? null : _handleSave,
@@ -97,6 +142,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDropdown(String label, String value, IconData icon) {
+     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.05)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: AppTheme.primaryColor.withValues(alpha: 0.4)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+              const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppTheme.textSecondary),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

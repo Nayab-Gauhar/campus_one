@@ -7,14 +7,13 @@ import 'package:campus_one/core/theme/app_theme.dart';
 import 'package:campus_one/models/event.dart';
 import 'package:campus_one/widgets/animations/animated_widgets.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:campus_one/widgets/common/shimmer_image.dart';
 import 'package:campus_one/features/notifications/screens/notifications_page.dart';
 import 'package:campus_one/models/user.dart';
 import 'package:campus_one/features/dashboard/screens/event_details_screen.dart';
 import 'package:campus_one/features/admin/screens/create_event_screen.dart';
 import 'package:campus_one/features/dashboard/screens/events_view.dart';
-import 'package:campus_one/features/dashboard/screens/societies_page.dart';
 import 'package:campus_one/features/dashboard/screens/calendar_page.dart';
+import 'package:campus_one/widgets/common/countdown_timer.dart';
 class HomeOverviewPage extends StatelessWidget {
   const HomeOverviewPage({super.key});
 
@@ -168,7 +167,17 @@ class HomeOverviewPage extends StatelessWidget {
                                 children: [
                                   _InfoChip(icon: Icons.calendar_today_rounded, label: nextEvent != null ? DateFormat('MMM dd').format(nextEvent.date).toUpperCase() : 'TODAY'),
                                   const SizedBox(width: 8),
-                                  _InfoChip(icon: Icons.access_time_rounded, label: nextEvent != null ? DateFormat('hh:mm A').format(nextEvent.date) : 'ANYTIME'),
+                                  if (nextEvent != null)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.surfaceColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: CountdownTimer(targetDate: nextEvent.date, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.accentTextColor)),
+                                    )
+                                  else
+                                    const _InfoChip(icon: Icons.access_time_rounded, label: 'ANYTIME'),
                                 ],
                               ),
                               const SizedBox(height: 12),
@@ -200,22 +209,9 @@ class HomeOverviewPage extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    ScaleOnTap(
-                                      onTap: () => _showTicket(context, nextEvent),
-                                      child: Container(
-                                        width: 56,
-                                        height: 56,
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.accentColor,
-                                          borderRadius: BorderRadius.circular(100),
-                                        ),
-                                        child: const Icon(Icons.qr_code_2, color: AppTheme.primaryColor),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              else
+                                    ],
+                                  )
+                                else
                                 ScaleOnTap(
                                   onTap: () {
                                     if (nextEvent != null) {
@@ -282,54 +278,40 @@ class HomeOverviewPage extends StatelessWidget {
               ),
             ),
 
-            _buildSectionHeader(context, 'Overview', 'View stats'),
-
-            // Horizontal Scrollable OverviewStats
-            SliverToBoxAdapter(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    _FeatureTile(
-                      label: 'Pending',
-                      value: '${data.societies.expand((s) => s.pendingRequests).where((r) => r == user?.id).length}',
-                      icon: Icons.hourglass_top_rounded, 
-                      color: AppTheme.surfaceColor,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SocietiesPage())),
-                    ),
-                    const SizedBox(width: 12),
-                    _FeatureTile(
-                      label: 'Attended', 
-                      value: '${user?.registeredEvents.length ?? 0}', 
-                      icon: Icons.check_circle_rounded, 
-                      color: AppTheme.accentColor.withValues(alpha: 0.3),
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage())),
-                    ),
-                    const SizedBox(width: 12),
-                     _FeatureTile(
-                      label: 'Points', 
-                      value: '${user?.points ?? 0}', 
-                      icon: Icons.bolt_rounded, 
-                      color: const Color(0xFFFFF4D1),
-                      onTap: () {}, // Could navigate to a points history
-                    ),
-                  ],
+            if (nextEvent != null) ...[
+               _buildSectionHeader(context, 'For You', 'Check agenda'),
+               SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      if (nextEvent.participantIds.contains(user?.id ?? '1'))
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _ForYouCard(
+                            icon: Icons.calendar_today_rounded,
+                            title: 'Add to Calendar',
+                            subtitle: 'Don\'t miss ${nextEvent.title}',
+                            color: Colors.blue.shade50,
+                            iconColor: Colors.blue,
+                            onTap: () {}, 
+                          ),
+                        ),
+                       _ForYouCard(
+                          icon: Icons.groups_2_rounded,
+                          title: 'Join Society Group',
+                          subtitle: 'Connect with other members',
+                          color: Colors.green.shade50,
+                          iconColor: Colors.green,
+                          onTap: () {},
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
 
-            _buildSectionHeader(context, 'Discover Events', 'See all'),
 
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _EventListTile(event: upcomingEvents[index]),
-                  childCount: upcomingEvents.length.clamp(0, 3),
-                ),
-              ),
-            ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
@@ -511,19 +493,22 @@ class _InfoChip extends StatelessWidget {
   }
 }
 
-class _FeatureTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-  final VoidCallback? onTap;
 
-  const _FeatureTile({
-    required this.label, 
-    required this.value, 
-    required this.icon, 
+class _ForYouCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const _ForYouCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
     required this.color,
-    this.onTap,
+    required this.iconColor,
+    required this.onTap,
   });
 
   @override
@@ -531,78 +516,30 @@ class _FeatureTile extends StatelessWidget {
     return ScaleOnTap(
       onTap: onTap,
       child: Container(
-        width: 140, // Fixed width for horizontal scrolling
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-             Container(
-               padding: const EdgeInsets.all(8),
-               decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-               child: Icon(icon, size: 16, color: AppTheme.primaryColor),
-             ),
-             const SizedBox(height: 16),
-             Text(label, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w700)),
-             const SizedBox(height: 4),
-             Text(value, style: TextStyle(color: AppTheme.textPrimary, fontSize: 24, fontWeight: FontWeight.w800)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EventListTile extends StatelessWidget {
-  final EventModel event;
-  const _EventListTile({required this.event});
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleOnTap(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventDetailsScreen(event: event))),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.04)),
         ),
         child: Row(
           children: [
-            ShimmerImage(
-              imageUrl: event.imageUrl,
-              borderRadius: 16,
-              height: 48,
-              width: 48,
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
-                  Text(event.organizerName, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                  Text(subtitle, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                 Text(
-                   DateFormat('MMM dd').format(event.date),
-                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary.withValues(alpha: 0.6)),
-                 ),
-                 Text(
-                   'FREE',
-                   style: TextStyle(color: AppTheme.accentColor.withBlue(100), fontSize: 10, fontWeight: FontWeight.w900),
-                 ),
-              ],
-            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textSecondary),
           ],
         ),
       ),

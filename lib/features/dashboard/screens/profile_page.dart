@@ -178,7 +178,7 @@ class ProfilePage extends StatelessWidget {
                      label: 'Saved', 
                      count: '$savedCount',
                      color: Colors.orange,
-                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage())),
+                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage(showSaved: true))),
                    ),
                 ],
               ),
@@ -274,7 +274,7 @@ class ProfilePage extends StatelessWidget {
                       icon: Icons.bookmark_border_rounded, 
                       label: 'Saved Content', 
                       value: '$savedCount items bookmarked',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage())),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsViewPage(showSaved: true))),
                     ),
                     const SizedBox(height: 32),
                     ScaleOnTap(

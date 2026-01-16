@@ -48,7 +48,7 @@ class _RequestsPageState extends State<RequestsPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        toolbarHeight: 70,
+        toolbarHeight: 80,
       ),
       body: Stack(
         children: [
@@ -214,14 +214,26 @@ class _RequestsPageState extends State<RequestsPage> {
             const Icon(Icons.check_circle_outline, size: 64, color: AppTheme.accentColor),
             const SizedBox(height: 24),
             const Text(
-              'All caught up!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.5),
+              'ALL CAUGHT UP!',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5),
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+               "You have no pending requests at the moment.",
               style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ScaleOnTap(
+              onTap: () {},
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: const Text('Review past approvals', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w800, fontSize: 12)),
+              ),
             ),
           ],
         ),
@@ -337,16 +349,35 @@ class _RequestTile extends StatelessWidget {
               child: const Icon(Icons.person, size: 40, color: AppTheme.primaryColor),
             ),
             const SizedBox(height: 16),
-            Text(userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-            Text('3rd Year • CSE Department', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14, fontWeight: FontWeight.w600)),
+            Text(userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5)),
+            Text('24/IT/05 • 3rd Year • IT Department', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
             const SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: AppTheme.surfaceColor, borderRadius: BorderRadius.circular(16)),
-              child: const Text(
-                '"I am passionate about photography and want to contribute to the club\'s upcoming exhibitions. I have 2 years of experience in street photography."',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontStyle: FontStyle.italic, color: AppTheme.textPrimary, fontSize: 13),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: AppTheme.surfaceColor, borderRadius: BorderRadius.circular(20)),
+              child: Column(
+                children: [
+                  _buildDetailRow('Events', 'Inkfinity, DesignX'),
+                  const Divider(height: 24, color: Color(0x1F000000)),
+                  _buildDetailRow('WhatsApp', '+91 9876543210'),
+                  const Divider(height: 24, color: Color(0x1F000000)),
+                  _buildDetailRow('Txn ID', 'TXN98230582'),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 48,
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: AppTheme.primaryColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.image_search_rounded, size: 18, color: AppTheme.primaryColor),
+                        SizedBox(width: 8),
+                        Text('VIEW PAYMENT PROOF', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.0)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
@@ -439,6 +470,16 @@ class _RequestTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+        Text(value, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w700)),
+      ],
     );
   }
 }

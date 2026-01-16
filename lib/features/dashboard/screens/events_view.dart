@@ -11,9 +11,11 @@ import 'package:campus_one/features/dashboard/screens/event_details_screen.dart'
 import 'package:flutter/cupertino.dart';
 import 'package:campus_one/widgets/common/shimmer_image.dart';
 import 'package:campus_one/widgets/common/skeletons.dart';
+import 'package:campus_one/features/notifications/screens/notifications_page.dart';
 
 class EventsViewPage extends StatefulWidget {
-  const EventsViewPage({super.key});
+  final bool showSaved;
+  const EventsViewPage({super.key, this.showSaved = false});
 
   @override
   State<EventsViewPage> createState() => _EventsViewPageState();
@@ -24,6 +26,13 @@ class _EventsViewPageState extends State<EventsViewPage> {
   String _searchQuery = '';
   EventStatus _selectedStatus = EventStatus.published;
   final List<String> _categories = ['All', 'Sports', 'Technical', 'Hackathon', 'Workshop', 'Cultural'];
+  late bool _showOnlySaved;
+
+  @override
+  void initState() {
+    super.initState();
+    _showOnlySaved = widget.showSaved;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +43,11 @@ class _EventsViewPageState extends State<EventsViewPage> {
     List<EventModel> filteredEvents = data.events;
     if (_selectedCategory != 'All') {
       filteredEvents = data.events.where((e) => e.category.name.toLowerCase() == _selectedCategory.toLowerCase()).toList();
+    }
+    
+    if (_showOnlySaved) {
+       final savedIds = data.savedEventIds;
+       filteredEvents = filteredEvents.where((e) => savedIds.contains(e.id)).toList();
     }
     
     if (isAdmin) {
@@ -57,8 +71,11 @@ class _EventsViewPageState extends State<EventsViewPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          CupertinoSliverRefreshControl(
-            onRefresh: () async => await context.read<DataService>().refreshData(),
+          SliverPadding(
+            padding: const EdgeInsets.only(top: 20),
+            sliver: CupertinoSliverRefreshControl(
+              onRefresh: () async => await context.read<DataService>().refreshData(),
+            ),
           ),
           
           // Header & Title
@@ -84,14 +101,14 @@ class _EventsViewPageState extends State<EventsViewPage> {
                       ),
                       _HeaderCircleAction(
                         icon: Icons.notifications_none_rounded,
-                        onTap: () {},
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsPage())),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Discover Events\nNear You With Us! 📣',
-                    style: TextStyle(
+                  Text(
+                    _showOnlySaved ? 'Your Saved\nEvents 🔖' : 'Discover Events\nNear You With Us! 📣',
+                    style: const TextStyle(
                       fontWeight: FontWeight.w900, 
                       fontSize: 28, 
                       letterSpacing: -1.0, 

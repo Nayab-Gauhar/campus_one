@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:campus_one/models/event.dart';
-import 'package:campus_one/services/data_service.dart';
 import 'package:campus_one/services/auth_service.dart';
 import 'package:campus_one/core/theme/app_theme.dart';
+import 'package:campus_one/widgets/common/shimmer_image.dart';
+import 'package:campus_one/features/dashboard/screens/event_registration_screen.dart';
 import 'package:campus_one/widgets/animations/animated_widgets.dart';
 
 class EventDetailsScreen extends StatelessWidget {
@@ -20,9 +21,10 @@ class EventDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.scaffoldColor,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
+      body: SafeArea( // Added SafeArea
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
           SliverAppBar(
             expandedHeight: 350,
             pinned: true,
@@ -42,10 +44,12 @@ class EventDetailsScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    event.imageUrl,
-                    fit: BoxFit.cover,
-                  ),
+                  ShimmerImage(
+                imageUrl: event.imageUrl,
+                height: 350,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -63,6 +67,7 @@ class EventDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
           SliverToBoxAdapter(
             child: Container(
               transform: Matrix4.translationValues(0, -30, 0),
@@ -96,10 +101,18 @@ class EventDetailsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     event.title,
                     style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -1),
                   ),
+                  if (event.tagline.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      event.tagline.toUpperCase(),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppTheme.accentTextColor, letterSpacing: 1.0),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   
                   // Quick Info Horizontal List
@@ -112,11 +125,28 @@ class EventDetailsScreen extends StatelessWidget {
                         _QuickInfoPill(icon: Icons.access_time_rounded, label: DateFormat('hh:mm a').format(event.date)),
                         const SizedBox(width: 8),
                         _QuickInfoPill(icon: Icons.location_on_rounded, label: event.location),
+                        const SizedBox(width: 8),
+                        _QuickInfoPill(icon: Icons.layers_rounded, label: event.isMultiEvent ? 'Multi-Event' : 'Single Event'),
                       ],
                     ),
                   ),
                   
                   const SizedBox(height: 40),
+                  const Text('ABOUT EVENT', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                  const SizedBox(height: 12),
+                  Text(
+                    event.description,
+                    style: const TextStyle(color: AppTheme.textSecondary, height: 1.6, fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+
+                  if (event.isMultiEvent && event.subEvents.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    const Text('EVENT SUITE AT A GLANCE', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                    const SizedBox(height: 16),
+                    ...event.subEvents.map((se) => _SubEventCard(subEvent: se)),
+                  ],
+
+                  const SizedBox(height: 32),
                   const Text('OPPORTUNITIES', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
                   const SizedBox(height: 16),
                   _ExperienceCard(
@@ -125,19 +155,38 @@ class EventDetailsScreen extends StatelessWidget {
                     prereq: event.prerequisites,
                   ),
 
-                  const SizedBox(height: 32),
-                  const Text('CONCEPT', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                  const SizedBox(height: 12),
-                  Text(
-                    event.description,
-                    style: const TextStyle(color: AppTheme.textSecondary, height: 1.6, fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
+                  if (event.structuredGuidelines.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    const Text('IMPORTANT GUIDELINES', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                    const SizedBox(height: 16),
+                    _StructuredGuidelines(guidelines: event.structuredGuidelines),
+                  ],
+
+                  if (event.requiresPayment && event.pricingBuckets.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    const Text('PRICING BUCKETS', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                    const SizedBox(height: 16),
+                    ...event.pricingBuckets.map((b) => _PricingCard(bucket: b, earlyBirdDeadline: event.earlyBirdDeadline)),
+                  ],
+                  
+                  if (event.agenda.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    const Text('AGENDA', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                    const SizedBox(height: 16),
+                    _AgendaSection(agenda: event.agenda),
+                  ],
+
+                  if (event.contactNumber.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    _ContactCard(name: event.contactName, number: event.contactNumber),
+                  ],
                   const SizedBox(height: 120),
                 ],
               ),
             ),
           ),
         ],
+      ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
@@ -152,17 +201,10 @@ class EventDetailsScreen extends StatelessWidget {
           onTap: isRegistered || event.isRegistrationClosed || event.isFull
               ? null
               : () {
-                  if (auth.currentUser != null) {
-                    context.read<DataService>().registerForEvent(event.id, auth.currentUser!.id);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Registration Confirmed! 🎉', style: TextStyle(fontWeight: FontWeight.w800)),
-                        backgroundColor: AppTheme.primaryColor,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                    );
-                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => EventRegistrationScreen(event: event)),
+                  );
                 },
           child: Container(
             height: 60,
@@ -273,6 +315,257 @@ class _ExperienceItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AgendaSection extends StatelessWidget {
+  final List<EventAgendaItem> agenda;
+  const _AgendaSection({required this.agenda});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: agenda.asMap().entries.map((entry) {
+        final index = entry.key;
+        final item = entry.value;
+        final isLast = index == agenda.length - 1;
+        
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: 70,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.time, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: AppTheme.textPrimary)),
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                   Container(
+                     width: 10, 
+                     height: 10, 
+                     decoration: BoxDecoration(
+                       color: AppTheme.primaryColor, 
+                       borderRadius: BorderRadius.circular(100),
+                       border: Border.all(color: Colors.white, width: 2),
+                       boxShadow: [BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.3), blurRadius: 4, offset: const Offset(0, 2))],
+                     ),
+                   ),
+                   if (!isLast)
+                     Expanded(child: Container(width: 2, color: AppTheme.surfaceColor)),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text(item.description, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _RulesSection extends StatelessWidget {
+  final List<String> rules;
+  const _RulesSection({required this.rules});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: rules.map((rule) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 6),
+                child: Icon(Icons.circle, size: 6, color: AppTheme.accentTextColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(rule, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600, height: 1.5))),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+  }
+}
+
+class _SubEventCard extends StatelessWidget {
+  final SubEvent subEvent;
+  const _SubEventCard({required this.subEvent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(color: AppTheme.surfaceColor, shape: BoxShape.circle),
+            child: Icon(subEvent.isTeam ? Icons.groups_rounded : Icons.person_rounded, color: AppTheme.primaryColor, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(subEvent.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                const SizedBox(height: 2),
+                Text(subEvent.description, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StructuredGuidelines extends StatelessWidget {
+  final Map<String, String> guidelines;
+  const _StructuredGuidelines({required this.guidelines});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: AppTheme.surfaceColor.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(28)),
+      child: Column(
+        children: guidelines.entries.map((e) => Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            children: [
+              Expanded(child: Text(e.key, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textSecondary))),
+              Text(e.value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppTheme.textPrimary)),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+  }
+}
+
+class _PricingCard extends StatelessWidget {
+  final PricingBucket bucket;
+  final DateTime earlyBirdDeadline;
+  const _PricingCard({required this.bucket, required this.earlyBirdDeadline});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isEarlyBird = DateTime.now().isBefore(earlyBirdDeadline);
+    final double price = isEarlyBird ? bucket.earlyBirdPrice : bucket.normalPrice;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(bucket.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+                const SizedBox(height: 4),
+                Text(bucket.subEvents.join(' • '), style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('₹${price.toInt()}', style: const TextStyle(color: AppTheme.accentColor, fontWeight: FontWeight.w900, fontSize: 28)),
+              if (isEarlyBird)
+               Text('EARLY BIRD', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContactCard extends StatelessWidget {
+  final String name;
+  final String number;
+  const _ContactCard({required this.name, required this.number});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.04)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(color: AppTheme.surfaceColor, shape: BoxShape.circle),
+            child: const Icon(Icons.support_agent_rounded, color: AppTheme.primaryColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('HAVE QUESTIONS?', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.accentTextColor, letterSpacing: 0.5)),
+                const SizedBox(height: 2),
+                Text('Contact $name', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppTheme.textPrimary)),
+                Text(number, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          Container(
+             padding: const EdgeInsets.all(10),
+             decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
+             child: const Icon(Icons.phone_rounded, color: Colors.green, size: 20),
+          ),
+        ],
+      ),
     );
   }
 }

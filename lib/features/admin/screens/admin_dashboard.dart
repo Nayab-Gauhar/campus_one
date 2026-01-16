@@ -23,10 +23,12 @@ class AdminDashboardPage extends StatelessWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Command Center', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: AppTheme.textPrimary, letterSpacing: -0.5)),
-            Text(
-              '${DateTime.now().day} ${const ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][DateTime.now().month-1]} • Overview',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+            Text('COMMAND CENTER', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppTheme.textPrimary, letterSpacing: 2.0)),
+            Container(
+              height: 2, 
+              width: 40, 
+              margin: const EdgeInsets.only(top: 4),
+              decoration: BoxDecoration(color: AppTheme.accentColor, borderRadius: BorderRadius.circular(2)),
             ),
           ],
         ),
@@ -34,9 +36,20 @@ class AdminDashboardPage extends StatelessWidget {
         elevation: 0,
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search_rounded, color: AppTheme.textPrimary, size: 22),
-            onPressed: () {}, // Future: Quick Search
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.circle, size: 8, color: Colors.greenAccent),
+                SizedBox(width: 8),
+                Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+              ],
+            ),
           ),
         ],
       ),
@@ -50,18 +63,21 @@ class AdminDashboardPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildCriticalIssues(context, data),
-                const SizedBox(height: 16), // Reduced spacing
+                _buildPrioritySection(context, data),
+                const SizedBox(height: 32),
+                
+                _buildSectionHeader('Ecosystem Pulse', 'REAL-TIME STATS'),
+                const SizedBox(height: 16),
                 _buildMetricsRow(context, data),
                 const SizedBox(height: 32),
                 
-                _buildSectionHeader('Configuration', 'EDIT'),
-                const SizedBox(height: 12),
+                _buildSectionHeader('Operations', 'LEVEL 1 AUTH'),
+                const SizedBox(height: 16),
                 _buildActionGrid(context),
                 
                 const SizedBox(height: 32),
-                _buildSectionHeader('Recent Activity', 'VIEW LOGS'),
-                const SizedBox(height: 8),
+                _buildSectionHeader('Live Feed', 'INTERACTIVE'),
+                const SizedBox(height: 12),
                 _buildActivityFeed(),
               ]),
             ),
@@ -71,35 +87,65 @@ class AdminDashboardPage extends StatelessWidget {
     );
   }
 
+  Widget _buildPrioritySection(BuildContext context, DataService data) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('WHAT NEEDS ATTENTION', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5, color: AppTheme.textSecondary)),
+        const SizedBox(height: 16),
+        _PriorityItem(
+          label: '3 Pending Approvals',
+          icon: Icons.pending_actions_rounded,
+          color: Colors.redAccent,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestsPage())),
+        ),
+        const SizedBox(height: 12),
+        _PriorityItem(
+          label: '2 Events starting in 24h',
+          icon: Icons.timer_outlined,
+          color: Colors.orangeAccent,
+          onTap: () {},
+        ),
+        const SizedBox(height: 12),
+        _PriorityItem(
+          label: '5 New Registrations Today',
+          icon: Icons.person_add_alt_1_rounded,
+          color: Colors.blueAccent,
+          onTap: () {},
+        ),
+      ],
+    );
+  }
+
   Widget _buildMetricsRow(BuildContext context, DataService data) {
     return FadeSlideEntrance(
       delay: const Duration(milliseconds: 100),
       child: Row(
         children: [
           _MetricTile(
-            label: 'ACTIVE',
+            label: 'LIVE EVENTS',
             value: data.activeEventCount.toString(),
             icon: Icons.wifi_tethering_rounded,
             color: AppTheme.primaryColor,
+            subtext: 'Ongoing on campus',
           ),
           const SizedBox(width: 12),
           _MetricTile(
-            label: 'PENDING',
+            label: 'AWAITING APPROVAL',
             value: data.totalPendingRequests.toString(),
-            icon: Icons.hourglass_top_rounded,
-            color: data.totalPendingRequests > 0 ? AppTheme.accentColor : AppTheme.textSecondary,
-            textColor: data.totalPendingRequests > 0 ? AppTheme.primaryColor : Colors.white,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestsPage())),
+            icon: Icons.hourglass_empty_rounded,
+            color: AppTheme.primaryColor,
+            isMuted: true,
+            subtext: 'Club post requests',
           ),
           const SizedBox(width: 12),
-          const _MetricTile(
-            label: 'ENGAGEMENT',
-            value: '94%',
-            icon: Icons.trending_up,
-            color: AppTheme.surfaceColor,
-            textColor: AppTheme.primaryColor,
+          _MetricTile(
+            label: 'AVG ATTENDANCE',
+            value: '78%',
+            icon: Icons.analytics_outlined,
+            color: AppTheme.primaryColor,
             isMuted: true,
-            showGraph: true,
+            subtext: 'Reg vs Presence',
           ),
         ],
       ),
@@ -115,28 +161,32 @@ class AdminDashboardPage extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.6, // Shorter cards
+        childAspectRatio: 1.3,
         children: [
           _ActionCard(
             label: 'Create Event', 
+            sublabel: 'Single / Multi / Paid',
             icon: Icons.add_circle_outline_rounded,
             color: AppTheme.primaryColor,
             textColor: Colors.white,
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateEventScreen())),
             onLongPress: () => _showQuickTemplates(context),
           ),
-          _CircularActionCard( // Broadcast is secondary
+          _CircularActionCard(
             label: 'Broadcast', 
+            sublabel: 'Notify all users',
             icon: Icons.campaign_outlined,
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BroadcastPage())),
           ),
           _CircularActionCard(
             label: 'Club Mgmt', 
+            sublabel: 'Leads & Permissions',
             icon: Icons.shield_outlined,
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageClubsPage())),
           ),
           _CircularActionCard(
             label: 'Students', 
+            sublabel: 'Verify, Block, Export',
             icon: Icons.people_outline_rounded,
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UsersPage())),
           ),
@@ -256,9 +306,41 @@ class AdminDashboardPage extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppTheme.textSecondary.withValues(alpha: 0.7), letterSpacing: 1.0)),
+        Text(title.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppTheme.textSecondary, letterSpacing: 1.0)),
         Text(action, style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
       ],
+    );
+  }
+}
+
+class _PriorityItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _PriorityItem({required this.label, required this.icon, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleOnTap(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textPrimary))),
+            Icon(Icons.arrow_forward_ios_rounded, size: 12, color: color.withValues(alpha: 0.5)),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -273,6 +355,8 @@ class _MetricTile extends StatelessWidget {
   final bool showGraph;
   final VoidCallback? onTap;
 
+  final String? subtext;
+
   const _MetricTile({
     required this.label,
     required this.value,
@@ -282,6 +366,7 @@ class _MetricTile extends StatelessWidget {
     this.isMuted = false,
     this.showGraph = false,
     this.onTap,
+    this.subtext,
   });
 
   @override
@@ -290,7 +375,7 @@ class _MetricTile extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: 90,
+          height: 100,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isMuted ? color : color,
@@ -312,13 +397,17 @@ class _MetricTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(icon, color: isMuted ? AppTheme.primaryColor : textColor.withValues(alpha: 0.8), size: 18),
+                  Icon(icon, color: isMuted ? AppTheme.primaryColor : textColor.withValues(alpha: 0.6), size: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: textColor, height: 1.0)),
+                      Text(label, style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                       const SizedBox(height: 4),
-                      Text(label, style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                      Text(value, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: textColor, height: 1.0, letterSpacing: -0.5)),
+                      if (subtext != null) ...[
+                        const SizedBox(height: 6),
+                        Text(subtext!, style: TextStyle(color: textColor.withValues(alpha: 0.4), fontSize: 8, fontWeight: FontWeight.w700)),
+                      ],
                     ],
                   ),
                 ],
@@ -380,8 +469,11 @@ class _ActionCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
+  final String? sublabel;
+
   const _ActionCard({
     required this.label, 
+    this.sublabel,
     required this.icon, 
     required this.color, 
     required this.textColor, 
@@ -409,7 +501,14 @@ class _ActionCard extends StatelessWidget {
               decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
               child: Icon(icon, color: textColor, size: 20),
             ),
-            Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: textColor)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: textColor)),
+                if (sublabel != null)
+                  Text(sublabel!, style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 9, fontWeight: FontWeight.w600)),
+              ],
+            ),
           ],
         ),
       ),
@@ -421,8 +520,9 @@ class _CircularActionCard extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onTap;
+  final String? sublabel;
 
-  const _CircularActionCard({required this.label, required this.icon, required this.onTap});
+  const _CircularActionCard({required this.label, this.sublabel, required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -439,7 +539,9 @@ class _CircularActionCard extends StatelessWidget {
           children: [
             Icon(icon, color: AppTheme.primaryColor, size: 24),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppTheme.textPrimary)),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary)),
+            if (sublabel != null)
+              Text(sublabel!, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 9, color: AppTheme.textSecondary)),
           ],
         ),
       ),
@@ -505,28 +607,47 @@ class _ActivityRow extends StatelessWidget {
   final IconData icon;
   final bool isAlert;
   final String? actionLabel;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
+  final VoidCallback? onAction;
 
-  const _ActivityRow({required this.title, required this.time, required this.icon, this.isAlert = false, this.actionLabel});
+  const _ActivityRow({
+    required this.title, 
+    required this.time, 
+    required this.icon, 
+    this.isAlert = false, 
+    this.actionLabel,
+    this.onApprove,
+    this.onReject,
+    this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey(title),
-      direction: DismissDirection.horizontal, // Bidirectional
+      key: ValueKey(title + time),
+      direction: (onApprove != null || onReject != null) ? DismissDirection.horizontal : DismissDirection.none,
+      onDismissed: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          onApprove?.call();
+        } else {
+          onReject?.call();
+        }
+      },
       background: Container(
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.only(left: 20),
-        color: Colors.green, // Approve
+        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(12)),
         child: const Icon(Icons.check_rounded, color: Colors.white),
       ),
       secondaryBackground: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        color: Colors.red, // Dismiss
+        decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(12)),
         child: const Icon(Icons.close_rounded, color: Colors.white),
       ),
       child: InkWell(
-        onTap: () {},
+        onTap: onAction,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
@@ -555,10 +676,10 @@ class _ActivityRow extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor,
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(actionLabel!, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                  child: Text(actionLabel!, style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.w900)),
                 ),
             ],
           ),

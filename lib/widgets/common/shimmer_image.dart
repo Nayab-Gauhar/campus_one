@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:campus_one/core/theme/app_theme.dart';
 
-class ShimmerImage extends StatefulWidget {
+class ShimmerImage extends StatelessWidget {
   final String imageUrl;
   final double height;
   final double width;
@@ -17,68 +20,34 @@ class ShimmerImage extends StatefulWidget {
   });
 
   @override
-  State<ShimmerImage> createState() => _ShimmerImageState();
-}
-
-class _ShimmerImageState extends State<ShimmerImage> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(widget.borderRadius),
-      child: Image.network(
-        widget.imageUrl,
-        height: widget.height,
-        width: widget.width,
-        fit: widget.fit,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Container(
-                height: widget.height,
-                width: widget.width,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.grey[200]!,
-                      Colors.grey[100]!,
-                      Colors.grey[200]!,
-                    ],
-                    stops: const [0.1, 0.5, 0.9],
-                    begin: Alignment(-1.0 + (_controller.value * 2), 0.0),
-                    end: Alignment(1.0 + (_controller.value * 2), 0.0),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: widget.height,
-            width: widget.width,
-            color: Colors.grey[200],
-            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
-          );
-        },
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
+        height: height,
+        width: width,
+        fit: fit,
+        placeholder: (context, url) => Shimmer.fromColors(
+          baseColor: Colors.grey[200]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            height: height,
+            width: width,
+            color: Colors.white,
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          height: height,
+          width: width,
+          color: AppTheme.surfaceColor,
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.broken_image_rounded, color: AppTheme.textSecondary, size: 24),
+            ],
+          ),
+        ),
       ),
     );
   }

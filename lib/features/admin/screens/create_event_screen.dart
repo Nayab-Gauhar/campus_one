@@ -16,12 +16,39 @@ class CreateEventScreen extends StatefulWidget {
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
   final _formKey = GlobalKey<FormState>();
+  int _currentStep = 1;
+  static const int _totalSteps = 7;
+
+  // Step 1: Type Selection
+  bool _isMultiEvent = false;
+
+  // Step 2: Overview
   final _titleController = TextEditingController();
+  final _taglineController = TextEditingController();
   final _descController = TextEditingController();
+  EventCategory _selectedCategory = EventCategory.technical;
+  String _mode = 'Offline';
+
+  // Step 3: Sub-Events (For Multi)
+  final List<SubEvent> _subEvents = [];
+
+  // Step 4: Rules & Guidelines
+  final Map<String, String> _guidelines = {
+    'Max Events per Student': '3',
+    'Team Auto-Allocation': 'No',
+    'WhatsApp Mandatory': 'Yes',
+    'Certificates': 'E-Certificate',
+  };
+
+  // Step 5: Pricing & Buckets
+  bool _requiresPayment = false;
+  final List<PricingBucket> _buckets = [];
+  final _earlyBirdPriceController = TextEditingController();
+  final _normalPriceController = TextEditingController();
+  
+  // Logistics
   final _locController = TextEditingController();
   final _dateController = TextEditingController();
-  
-  EventCategory _selectedCategory = EventCategory.technical;
 
   @override
   void initState() {
@@ -31,57 +58,47 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   void _applyTemplate() {
     if (widget.template == 'Hackathon') {
+      _isMultiEvent = false;
       _titleController.text = 'Campus CodeFest 2024';
-      _descController.text = 'A 24-hour coding marathon to build solutions for campus problems. Food and swag provided!';
+      _descController.text = '24-hour coding marathon.';
       _selectedCategory = EventCategory.hackathon;
-      _locController.text = 'Main Auditorium';
-      _dateController.text = 'Saturday, 10:00 AM';
-    } else if (widget.template == 'Guest Speaker') {
-      _titleController.text = 'Industry Talk: AI Future';
-      _descController.text = 'Join us for an interactive session with leading experts in Artificial Intelligence.';
-      _selectedCategory = EventCategory.workshop;
-      _locController.text = 'Seminar Hall B';
-      _dateController.text = 'Friday, 2:00 PM';
-    } else if (widget.template == 'Sports') {
-      _titleController.text = 'Inter-Department Cricket';
-      _descController.text = 'T20 Match: CSE vs ECE. Come support your department!';
-      _selectedCategory = EventCategory.sports;
-      _locController.text = 'College Ground';
-      _dateController.text = 'Sunday, 9:00 AM';
     }
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      final user = context.read<AuthService>().currentUser!;
-      final eventDate = DateTime.now().add(const Duration(days: 7)); // Mock date parsing
-      final newEvent = EventModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        title: _titleController.text,
-        description: _descController.text,
-        date: eventDate,
-        registrationDeadline: eventDate.subtract(const Duration(days: 2)),
-        location: _locController.text,
-        organizerId: 'new_org',
-        organizerName: user.name,
-        category: _selectedCategory,
-        imageUrl: _getMockImageForCategory(_selectedCategory),
-        skillsToLearn: ['Leadership', 'Communication'],
-        targetAudience: 'All interested students',
-      );
-      
-      _showPreview(newEvent);
+  void _nextStep() {
+    if (_currentStep < _totalSteps) {
+      setState(() => _currentStep++);
+    } else {
+      _deploy();
     }
   }
 
-  String _getMockImageForCategory(EventCategory cat) {
-    // Quick mock images
-    switch (cat) {
-      case EventCategory.hackathon: return 'https://images.unsplash.com/photo-1504384308090-c54be3855833?auto=format&fit=crop&q=80&w=800';
-      case EventCategory.sports: return 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=800';
-      case EventCategory.cultural: return 'https://images.unsplash.com/photo-1514525253440-b393452e3383?auto=format&fit=crop&q=80&w=800';
-      default: return 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800';
+  void _prevStep() {
+    if (_currentStep > 1) {
+      setState(() => _currentStep--);
     }
+  }
+
+  void _deploy() {
+    final event = EventModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: _titleController.text,
+      tagline: _taglineController.text,
+      description: _descController.text,
+      date: DateTime.now().add(const Duration(days: 7)),
+      registrationDeadline: DateTime.now().add(const Duration(days: 5)),
+      location: _locController.text,
+      mode: _mode,
+      organizerId: 'new_org',
+      organizerName: 'Admin',
+      category: _selectedCategory,
+      imageUrl: 'https://images.unsplash.com/photo-1504384308090-c54be3855833?auto=format&fit=crop&q=80&w=800',
+      isMultiEvent: _isMultiEvent,
+      subEvents: _subEvents,
+      requiresPayment: _requiresPayment,
+      pricingBuckets: _buckets,
+    );
+    _showPreview(event);
   }
 
   void _showPreview(EventModel event) {
@@ -90,61 +107,20 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: AppTheme.scaffoldColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(color: AppTheme.scaffoldColor, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
         child: Column(
           children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: AppTheme.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-            ),
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(10))),
             const SizedBox(height: 24),
-            const Text('PREVIEW AS STUDENT', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.0, color: AppTheme.textSecondary)),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor, 
-                        borderRadius: BorderRadius.circular(24),
-                        image: DecorationImage(image: NetworkImage(event.imageUrl), fit: BoxFit.cover),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(event.title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-                    const SizedBox(height: 16),
-                    Text(event.description, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16, height: 1.5)),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: ScaleOnTap(
-                onTap: () {
-                  context.read<DataService>().addEvent(event);
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event published successfully!')));
-                },
-                child: Container(
-                  height: 56,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: AppTheme.primaryColor, borderRadius: BorderRadius.circular(100)),
-                  child: const Text('Confirm & Publish', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-                ),
-              ),
-            ),
+            const Text('LIVE PREVIEW', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 2.0, color: AppTheme.textSecondary)),
+            Expanded(child: Center(child: Text('Student View of ${event.title}\n(Preview Logic Implementation)')),),
+            _buildActionButtons(onNext: () {
+               context.read<DataService>().addEvent(event);
+               Navigator.pop(context); // Close preview
+               Navigator.pop(context); // Close screen
+            }, nextLabel: 'CONFIRM & DEPLOY'),
           ],
         ),
       ),
@@ -159,225 +135,328 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Initiate new project', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600)),
-            Text('Create Event', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24, letterSpacing: -1.0, color: AppTheme.textPrimary)),
+            Text('Step $_currentStep of $_totalSteps', style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+            Text(_getStepTitle(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppTheme.textPrimary)),
           ],
         ),
-        toolbarHeight: 70,
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close_rounded, color: AppTheme.textSecondary),
-            onPressed: () => Navigator.pop(context),
-          )
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          onPressed: _prevStep,
+        ),
+      ),
+      body: Column(
+        children: [
+          _buildProgressIndicator(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: _buildCurrentStep(),
+            ),
+          ),
+          _buildActionButtons(
+            onNext: _nextStep,
+            nextLabel: _currentStep == _totalSteps ? 'REVIEW & DEPLOY' : 'CONTINUE',
+          ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            _buildCategoryDropdown(),
-            const SizedBox(height: 24),
-            
-            _buildSectionLabel('CORE DETAILS'),
-            const SizedBox(height: 12),
-            _buildTextField(
-              controller: _titleController,
-              hint: 'Event Title',
-              icon: Icons.title_rounded,
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _descController,
-              hint: 'Description',
-              icon: Icons.description_rounded,
-              maxLines: 4,
-            ),
-            
-            const SizedBox(height: 32),
-            _buildSectionLabel('LOGISTICS'),
-            const SizedBox(height: 12),
-            Row(
+    );
+  }
+
+  String _getStepTitle() {
+    switch (_currentStep) {
+      case 1: return 'Event Type';
+      case 2: return 'Basic Overview';
+      case 3: return 'Sub-Event Architect';
+      case 4: return 'Guidelines';
+      case 5: return 'Logistics';
+      case 6: return 'Pricing Buckets';
+      case 7: return 'Registration Settings';
+      default: return 'Create Event';
+    }
+  }
+
+  Widget _buildProgressIndicator() {
+    return Container(
+      height: 4,
+      width: double.infinity,
+      color: AppTheme.primaryColor.withValues(alpha: 0.05),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: _currentStep / _totalSteps,
+        child: Container(color: AppTheme.accentColor),
+      ),
+    );
+  }
+
+  Widget _buildCurrentStep() {
+    switch (_currentStep) {
+      case 1: return _buildStep1();
+      case 2: return _buildStep2();
+      case 3: return _buildStep3();
+      case 4: return _buildStep4();
+      case 5: return _buildStep5();
+      case 6: return _buildStep6();
+      case 7: return _buildStep7();
+      default: return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildStep1() {
+    return Column(
+      children: [
+        _TypeCard(
+          title: 'Single Event',
+          subtitle: 'Workshops, Seminars, Single-track contests',
+          icon: Icons.event_rounded,
+          isSelected: !_isMultiEvent,
+          onTap: () => setState(() => _isMultiEvent = false),
+        ),
+        const SizedBox(height: 16),
+        _TypeCard(
+          title: 'Multi-Event / Fest',
+          subtitle: 'Mega events like ESCALATE X with sub-events',
+          icon: Icons.auto_awesome_motion_rounded,
+          isSelected: _isMultiEvent,
+          onTap: () => setState(() => _isMultiEvent = true),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStep2() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField(controller: _titleController, hint: 'Event Name (e.g. Escalate X)', icon: Icons.title_rounded),
+        const SizedBox(height: 16),
+        _buildTextField(controller: _taglineController, hint: 'Catchy Tagline (1 line)', icon: Icons.auto_awesome_rounded),
+        const SizedBox(height: 16),
+        _buildCategoryDropdown(),
+        const SizedBox(height: 16),
+        _buildModeSelector(),
+        const SizedBox(height: 16),
+        _buildTextField(controller: _descController, hint: 'Full Description', icon: Icons.description_rounded, maxLines: 4),
+      ],
+    );
+  }
+
+  Widget _buildStep3() {
+    if (!_isMultiEvent) {
+       return _buildEmptyPlaceholder('Not applicable for Single Events. Skipping to guidelines.');
+    }
+    return Column(
+      children: [
+        ..._subEvents.map((se) => _buildSubEventListTile(se)),
+        ScaleOnTap(
+          onTap: () => setState(() => _subEvents.add(SubEvent(id: '1', title: 'New Sub-Event', description: 'Enter details'))),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)), borderRadius: BorderRadius.circular(16)),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _dateController,
-                    hint: 'Date & Time',
-                    icon: Icons.calendar_today_rounded,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _locController,
-                    hint: 'Venue',
-                    icon: Icons.location_on_rounded,
-                  ),
-                ),
+                Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryColor),
+                SizedBox(width: 12),
+                Text('Add Sub-Event', style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.primaryColor)),
               ],
             ),
-            
-            if (_locController.text.isEmpty)
-               Padding(
-                 padding: const EdgeInsets.only(top: 8, left: 4),
-                 child: Wrap(
-                   spacing: 8,
-                   children: [
-                     _SuggestedChip(label: 'Main Hall', onTap: () => setState(() => _locController.text = 'Main Hall')),
-                     _SuggestedChip(label: 'Sports Ground', onTap: () => setState(() => _locController.text = 'Sports Ground')),
-                     _SuggestedChip(label: 'Auditorium', onTap: () => setState(() => _locController.text = 'Auditorium')),
-                   ],
-                 ),
-               ),
+          ),
+        ),
+      ],
+    );
+  }
 
-            const SizedBox(height: 32),
-            
-            // Collapsible Advanced Section
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.05)),
-              ),
-              child: Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  title: const Text('Advanced Settings', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textPrimary)),
-                  iconColor: AppTheme.primaryColor,
-                  collapsedIconColor: AppTheme.textSecondary,
-                  childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  children: [
-                    _buildTextField(
-                      controller: TextEditingController(),
-                      hint: 'Registration Link (Optional)',
-                      icon: Icons.link_rounded,
-                      isOptional: true,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTextField(
-                      controller: TextEditingController(),
-                      hint: 'Max Participants',
-                      icon: Icons.people_outline_rounded,
-                      isOptional: true,
-                    ),
-                  ],
-                ),
-              ),
+  Widget _buildStep4() {
+    return Column(
+      children: _guidelines.keys.map((key) => _buildGuidelineField(key)).toList(),
+    );
+  }
+
+  Widget _buildStep5() {
+    return Column(
+      children: [
+        _buildTextField(controller: _locController, hint: 'Venue / Meeting Link', icon: Icons.location_on_rounded),
+        const SizedBox(height: 16),
+        _buildTextField(controller: _dateController, hint: 'Date & Start Time', icon: Icons.timer_rounded),
+      ],
+    );
+  }
+
+  Widget _buildStep6() {
+    return Column(
+      children: [
+        SwitchListTile(
+          title: const Text('Require Payment', style: TextStyle(fontWeight: FontWeight.w800)),
+          value: _requiresPayment,
+          onChanged: (v) => setState(() => _requiresPayment = v),
+          activeColor: AppTheme.accentColor,
+        ),
+        if (_requiresPayment) ...[
+          const SizedBox(height: 16),
+          ..._buckets.map((b) => _buildBucketListTile(b)),
+          ScaleOnTap(
+            onTap: () => setState(() => _buckets.add(const PricingBucket(name: 'BUCKET 1', subEvents: [], earlyBirdPrice: 0, normalPrice: 0))),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.center,
+              child: const Text('+ Add Pricing Bucket', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w800)),
             ),
+          ),
+        ],
+      ],
+    );
+  }
 
-            const SizedBox(height: 48),
-            ScaleOnTap(
-              onTap: _submit,
+  Widget _buildStep7() {
+    return Column(
+      children: [
+        _buildConfigItem('Full Name', true),
+        _buildConfigItem('Roll Number', true),
+        _buildConfigItem('Department', true),
+        _buildConfigItem('WhatsApp Number', true),
+        _buildConfigItem('Payment Screenshot', _requiresPayment),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons({required VoidCallback onNext, String nextLabel = 'CONTINUE'}) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))]),
+      child: Row(
+        children: [
+          if (_currentStep > 1)
+            IconButton(
+              onPressed: _prevStep,
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            ),
+          Expanded(
+            child: ScaleOnTap(
+              onTap: onNext,
               child: Container(
                 height: 56,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
-                  borderRadius: BorderRadius.circular(100),
-                  boxShadow: [
-                    BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 10)),
-                  ],
-                ),
-                child: const Text('Publish to Agenda', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+                decoration: BoxDecoration(color: AppTheme.primaryColor, borderRadius: BorderRadius.circular(100)),
+                child: Text(nextLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
               ),
             ),
-            const SizedBox(height: 60),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSectionLabel(String label) {
-    return Text(
-      label, 
-      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.0, color: AppTheme.textSecondary.withValues(alpha: 0.5))
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller, 
-    required String hint, 
-    required IconData icon, 
-    int maxLines = 1,
-    bool isOptional = false,
-  }) {
+  // Helpers
+  Widget _buildTextField({required TextEditingController controller, required String hint, required IconData icon, int maxLines = 1}) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.05)),
-      ),
-      child: TextFormField(
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black12)),
+      child: TextField(
         controller: controller,
         maxLines: maxLines,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textPrimary),
-        decoration: InputDecoration(
-          hintText: hint,
-          prefixIcon: Icon(icon, color: isOptional ? AppTheme.textSecondary : AppTheme.primaryColor, size: 20),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(18),
-        ),
-        validator: (v) => (!isOptional && (v?.isEmpty ?? true)) ? 'Required' : null,
+        decoration: InputDecoration(hintText: hint, prefixIcon: Icon(icon, color: AppTheme.primaryColor, size: 18), border: InputBorder.none, contentPadding: const EdgeInsets.all(18)),
       ),
     );
+  }
+
+  Widget _buildModeSelector() {
+    return Row(
+      children: ['Offline', 'Online', 'Hybrid'].map((m) => Expanded(
+        child: GestureDetector(
+          onTap: () => setState(() => _mode = m),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _mode == m ? AppTheme.primaryColor : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black12),
+            ),
+            child: Text(m, style: TextStyle(color: _mode == m ? Colors.white : AppTheme.textPrimary, fontWeight: FontWeight.w800, fontSize: 12)),
+          ),
+        ),
+      )).toList(),
+    );
+  }
+
+  Widget _buildConfigItem(String label, bool isEnabled) {
+    return ListTile(
+      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+      trailing: Switch(value: isEnabled, onChanged: (_) {}, activeColor: AppTheme.primaryColor),
+    );
+  }
+
+  Widget _buildEmptyPlaceholder(String text) {
+    return Center(child: Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.textSecondary)));
   }
 
   Widget _buildCategoryDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.05)),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black12)),
       child: DropdownButtonFormField<EventCategory>(
         initialValue: _selectedCategory,
-        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.primaryColor),
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.category_rounded, color: AppTheme.primaryColor, size: 20),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.all(18),
-        ),
-        items: EventCategory.values.map((cat) {
-          return DropdownMenuItem(value: cat, child: Text(cat.name.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textPrimary)));
-        }).toList(),
-        onChanged: (v) => setState(() {
-          _selectedCategory = v!;
-          // Auto-fill logic based on category change
-          if (_dateController.text.isEmpty) {
-             if (v == EventCategory.sports) _dateController.text = 'Sunday, 9:00 AM';
-             if (v == EventCategory.hackathon) _dateController.text = 'Saturday, 10:00 AM';
-             if (v == EventCategory.workshop) _dateController.text = 'Friday, 3:00 PM';
-          }
-        }),
+        decoration: const InputDecoration(prefixIcon: Icon(Icons.category_rounded), border: InputBorder.none, contentPadding: EdgeInsets.all(18)),
+        items: EventCategory.values.map((c) => DropdownMenuItem(value: c, child: Text(c.name.toUpperCase()))).toList(),
+        onChanged: (v) => setState(() => _selectedCategory = v!),
       ),
     );
   }
+
+  Widget _buildGuidelineField(String key) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _buildTextField(controller: TextEditingController(text: _guidelines[key]), hint: key, icon: Icons.rule_rounded),
+    );
+  }
+
+  Widget _buildSubEventListTile(SubEvent se) {
+    return Card(child: ListTile(title: Text(se.title), subtitle: Text(se.description), trailing: const Icon(Icons.edit_note_rounded)));
+  }
+
+  Widget _buildBucketListTile(PricingBucket b) {
+    return Card(child: ListTile(title: Text(b.name), subtitle: Text('₹${b.normalPrice}')));
+  }
 }
 
-class _SuggestedChip extends StatelessWidget {
-  final String label;
+class _TypeCard extends StatelessWidget {
+  final String title, subtitle;
+  final IconData icon;
+  final bool isSelected;
   final VoidCallback onTap;
-  const _SuggestedChip({required this.label, required this.onTap});
+
+  const _TypeCard({required this.title, required this.subtitle, required this.icon, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppTheme.accentColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(color: AppTheme.accentColor.withValues(alpha: 0.2)),
+          color: isSelected ? AppTheme.primaryColor : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: isSelected ? Colors.transparent : Colors.black12, width: 2),
         ),
-        child: Text(label, style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.w700)),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? Colors.white : AppTheme.primaryColor, size: 32),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: isSelected ? Colors.white : AppTheme.textPrimary)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: TextStyle(color: isSelected ? Colors.white70 : AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

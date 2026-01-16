@@ -132,14 +132,15 @@ class _UniversalFloatingNav extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.fastOutSlowIn,
-                width: isSelected ? 130 : 56,
+                width: isSelected ? 115 : 56, // Reduced from 130
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: isSelected ? AppTheme.accentColor : Colors.transparent, 
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center, // Already centered
+                  mainAxisSize: MainAxisSize.min, // Ensure it doesn't stretch unnecessarily
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),

@@ -52,6 +52,21 @@ class DataService extends ChangeNotifier {
         skillsToLearn: ['Flutter', 'Teamwork', 'Pitching'],
         targetAudience: 'All engineering students',
         status: EventStatus.published,
+        contactName: 'Alex Chen',
+        contactNumber: '+91 98765 43210',
+        minTeamSize: 2,
+        maxTeamSize: 4,
+        agenda: [
+          EventAgendaItem(time: '09:00 AM', title: 'Opening Ceremony', description: 'Welcome address by the Dean.'),
+          EventAgendaItem(time: '10:00 AM', title: 'Hacking Begins', description: 'Start working on your projects.'),
+          EventAgendaItem(time: '01:00 PM', title: 'Lunch Break', description: 'Food provided at the cafeteria.'),
+          EventAgendaItem(time: '06:00 PM', title: 'Mentorship Round', description: 'Get feedback from industry experts.'),
+        ],
+        rules: [
+          'Teams must consist of 2-4 members.',
+          'All code must be written during the event.',
+          'Open source libraries are allowed.',
+        ],
       ),
       EventModel(
         id: 'e2',
@@ -67,6 +82,17 @@ class DataService extends ChangeNotifier {
         skillsToLearn: ['Agility', 'Strategy'],
         targetAudience: 'Any student',
         status: EventStatus.published,
+        contactName: 'Coach Mike',
+        contactNumber: '+91 12345 67890',
+        agenda: [
+          EventAgendaItem(time: '08:00 AM', title: 'Warm-up', description: 'Group exercises.'),
+          EventAgendaItem(time: '09:00 AM', title: 'Track Events', description: '100m, 200m, and Relay races.'),
+          EventAgendaItem(time: '02:00 PM', title: 'Team Sports', description: 'Football and Cricket finals.'),
+        ],
+        rules: [
+          'Proper sports attire is mandatory.',
+          'Registration ID card is required.',
+        ],
       ),
     ];
 

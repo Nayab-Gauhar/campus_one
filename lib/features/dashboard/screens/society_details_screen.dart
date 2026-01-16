@@ -4,6 +4,7 @@ import 'package:campus_one/models/society.dart';
 import 'package:campus_one/services/data_service.dart';
 import 'package:campus_one/services/auth_service.dart';
 import 'package:campus_one/core/theme/app_theme.dart';
+import 'package:campus_one/widgets/common/shimmer_image.dart';
 import 'package:campus_one/widgets/animations/animated_widgets.dart';
 
 class SocietyDetailsScreen extends StatelessWidget {
@@ -41,10 +42,12 @@ class SocietyDetailsScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    society.logoUrl,
-                    fit: BoxFit.cover,
-                  ),
+                  ShimmerImage(
+                  imageUrl: society.logoUrl, // Using logo as placeholder banner for now
+                  height: 250,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -62,6 +65,7 @@ class SocietyDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
           SliverToBoxAdapter(
             child: Container(
               transform: Matrix4.translationValues(0, -30, 0),
@@ -94,7 +98,20 @@ class SocietyDetailsScreen extends StatelessWidget {
                     society.description,
                     style: const TextStyle(color: AppTheme.textSecondary, height: 1.6, fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                       _SocialIcon(icon: Icons.camera_alt_outlined, url: 'instagram.com'), // Instagram
+                       const SizedBox(width: 12),
+                       _SocialIcon(icon: Icons.facebook, url: 'facebook.com'), // Facebook
+                       const SizedBox(width: 12),
+                       _SocialIcon(icon: Icons.alternate_email, url: 'twitter.com'), // X / Twitter
+                       const SizedBox(width: 12),
+                       _SocialIcon(icon: Icons.play_circle_outline_rounded, url: 'youtube.com'), // YouTube
+                       const SizedBox(width: 12),
+                       _SocialIcon(icon: Icons.language_rounded, url: 'website.com'), // Website
+                    ],
+                  ),
                   const SizedBox(height: 48),
                   const Text('GOALS & OPERATIONS', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
                   const SizedBox(height: 16),
@@ -153,7 +170,7 @@ class SocietyDetailsScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(100),
             ),
             child: Text(
-              isMember ? 'YOU ARE A MEMBER' : (isPending ? 'REQUEST PENDING' : 'REQUEST ENTRANCE'),
+              isMember ? 'YOU ARE A MEMBER' : (isPending ? 'REQUEST PENDING' : 'APPLY TO JOIN'),
               style: TextStyle(
                 fontSize: 14, 
                 fontWeight: FontWeight.w900,
@@ -251,6 +268,30 @@ class _CoreTeamRow extends StatelessWidget {
           child: Divider(height: 1, color: AppTheme.primaryColor.withValues(alpha: 0.05)),
         ),
       ],
+    );
+  }
+}
+
+class _SocialIcon extends StatelessWidget {
+  final IconData icon;
+  final String url;
+  const _SocialIcon({required this.icon, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleOnTap(
+      onTap: () {
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening social link...')));
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+        ),
+        child: Icon(icon, size: 20, color: AppTheme.primaryColor),
+      ),
     );
   }
 }
