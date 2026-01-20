@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Temporary files
+*.txt
+!README.txt
+analysis_output.txt
+context.txt
+
+# IDE specific
+.vscode/
+*.iml
+campus_one.iml
