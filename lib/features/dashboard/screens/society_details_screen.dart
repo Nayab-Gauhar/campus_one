@@ -117,7 +117,7 @@ class SocietyDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   _BlueprintCard(
                     what: society.whatWeDo,
-                    profile: society.idealtudentProfile,
+                    profile: society.idealStudentProfile,
                     time: society.timeCommitment,
                   ),
 

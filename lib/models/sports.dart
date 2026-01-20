@@ -62,7 +62,7 @@ class SportsTeam {
   final String logoUrl;
   final String? colorHex; // Hex string e.g. "FF0000"
 
-  SportsTeam({
+  const SportsTeam({
     required this.id,
     required this.name,
     required this.sport,
